@@ -1,0 +1,70 @@
+<?php
+
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ProductController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| contains the "web" middleware group. Now create something great!
+|
+*/
+
+
+
+
+Route::get('/',[HomeController::class,'index']);
+Route::get('/products-by-category/{id}',[HomeController::class,'getProductsByCategory']);
+
+
+// cart 
+
+Route::post('/add-to-cart',[CartController::class,'add']);
+Route::post('/update-cart',[CartController::class,'update'])->name('cart.update');
+Route::get('/get-cart-data',[CartController::class,'getCartData'])->name('cart.get.data');
+Route::get('/delete-cart-item',[CartController::class,'deleteCartItem'])->name('cart.delete.item');
+Route::get('/cart-checkout',[CartController::class,'showCartPage'])->name('cart.showCart');
+
+
+
+// Auth ROute
+
+Route::get('/register',[AuthController::class,'showregisterForm'])->name('register.form');
+Route::post('/register',[AuthController::class,'register'])->name('register');
+Route::post('/logout',[AuthController::class,'logout'])->name('logout');
+
+Route::get('/login',[AuthController::class,'showLoginForm'])->name('login.form');
+Route::post('/login',[AuthController::class,'login'])->name('login');
+
+
+
+// admin route
+
+Route::get('/admin/dashboard', function () {
+    return view('admin.welcome_dashboard');
+})->middleware(['auth','is_admin']); 
+
+Route::get('/admin/category', [CategoryController::class, 'index'])->name('category.index');
+Route::post('/admin/category/store', [CategoryController::class, 'store'])->name('create.category');
+Route::get('/admin/category/fetch', [CategoryController::class, 'fetch'])->name('fetch.category');
+Route::delete('/admin/category/delete/{id}', [CategoryController::class, 'destroy'])->name('delete.category');
+
+
+Route::get('/admin/product', [ProductController::class, 'index'])->name('product.index');
+Route::post('/admin/product/store', [ProductController::class, 'store'])->name('create.product');
+Route::get('/admin/product/fetch', [ProductController::class, 'fetch'])->name('fetch.product');
+Route::delete('/admin/product/delete/{id}', [ProductController::class, 'destroy'])->name('delete.product');
+
+
+
+
+
+
