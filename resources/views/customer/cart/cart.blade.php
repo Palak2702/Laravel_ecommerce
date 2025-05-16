@@ -18,9 +18,11 @@
                             <th scope="col">Name</th>
                             <th scope="col">Price</th>
                             <th scope="col">Discount</th>
-                            <th scope="col">Quantity</th>
+                            {{-- <th scope="col">Quantity</th> --}}
                             <th scope="col">Total</th>
-                            <th scope="col">Handle</th>
+                            <th scope="col">Total Price</th>
+                            <th scope="col">After Discount Price</th>
+                            <th scope="col">Empty Cart</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -46,33 +48,34 @@
                                     <p class="mb-0 mt-4">{{ $value->product->discount }}{{ $value->product->discount_type }}
                                     </p>
                                 </td>
-                                <td>
+                                {{-- <td>
                                     <p class="mb-0 mt-4">{{ $value->quantity }}</p>
-                                </td>
+                                </td> --}}
                                 <td>
-                                    <div class="input-group quantity mt-4" style="width: 100px;">
-                                        <div class="input-group-btn">
-                                            <button class="btn btn-sm btn-minus rounded-circle bg-light border update-qty"
-                                                data-type="decrease" data-product-id="{{ $value->product->id }}">
-                                                <i class="fa fa-minus"></i>
-                                            </button>
-                                        </div>
 
-                                        <input type="text"
-                                            class="form-control form-control-sm text-center border-0 cart-qty-input"
-                                            data-product-id="{{ $value->product->id }}" value="{{ $value->quantity }}">
-
-                                        <div class="input-group-btn">
-                                            <button class="btn btn-sm btn-plus rounded-circle bg-light border update-qty"
-                                                data-type="increase" data-product-id="{{ $value->product->id }}">
-                                                <i class="fa fa-plus"></i>
-                                            </button>
-                                        </div>
+                                    <div class="quantity-controls mt-2" data-product-id="{{ $value->product->id }}">
+                                        <button class="btn btn-sm btn-outline-secondary update-qty-decrease"
+                                            data-product-id="{{ $value->product->id }}">-</button>
+                                        <input type="text" class="qty-input mx-1 text-center border-0 cart-qty-input"
+                                            data-product-id="{{ $value->product->id }}" value="{{ $value->quantity }}"
+                                            readonly style="width: 40px;">
+                                        <button class="btn btn-sm btn-outline-secondary update-qty-increase"
+                                            data-product-id="{{ $value->product->id }}">+</button>
                                     </div>
+
+                                </td>
+
+
+                                <td>
+                                    <p class="mb-0 mt-4" id="original-price-{{ $value->product->id }}">
+                                        ₹{{ $value->original_price }}</p>
                                 </td>
                                 <td>
-                                    <p class="mb-0 mt-4">2.99 $</p>
+                                    <p class="mb-0 mt-4" id="discount-price-{{ $value->product->id }}">
+                                        ₹{{ $value->discount_price }}</p>
                                 </td>
+
+
                                 <td>
                                     <button class="btn btn-md rounded-circle bg-light border mt-4 delete-cart-item"
                                         data-cart-id="{{ $value->id }}">
@@ -100,22 +103,41 @@
                             <h1 class="display-6 mb-4">Cart <span class="fw-normal">Total</span></h1>
                             <div class="d-flex justify-content-between mb-4">
                                 <h5 class="mb-0 me-4">Subtotal:</h5>
-                                <p class="mb-0">$96.00</p>
+                                <p class="mb-0" id="cart-total">--</p>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <h5 class="mb-0 me-4">Shipping</h5>
                                 <div class="">
-                                    <p class="mb-0">Flat rate: $3.00</p>
+                                    <p class="mb-0">100 Rs</p>
                                 </div>
                             </div>
-                            <p class="mb-0 text-end">Shipping to Ukraine.</p>
+                            <p class="mb-0 text-end">Shipping to .</p>
                         </div>
-                        <div class="py-4 mb-4 border-top border-bottom d-flex justify-content-between">
-                            <h5 class="mb-0 ps-4 me-4">Total</h5>
-                            <p class="mb-0 pe-4">$99.00</p>
+                        <div
+                            class="py-4 mb-4 border-top border-bottom d-flex justify-content-between align-items-center px-4">
+                            <h5 class="mb-0">Total</h5>
+                            <p class="mb-0" id="final-cart-total">--</p>
                         </div>
-                        <button class="btn border-secondary rounded-pill px-4 py-3 text-primary text-uppercase mb-4 ms-4"
-                            type="button">Proceed Checkout</button>
+                        <button id="pay-button"
+                            class="btn border-secondary rounded-pill px-4 py-3 text-primary text-uppercase mb-4 ms-4">
+                            Proceed to Pay
+                        </button>
+
+
+
+                        {{-- <form action="{{ route('razorpay.payment.store') }}" method="POST">
+
+                            @csrf
+
+                            <script src="https://checkout.razorpay.com/v1/checkout.js" data-key="{{ env('RAZORPAY_KEY_ID') }}"
+                                data-amount="{{ (int)(($finalTotalAmount ?? 100) * 100) }}" data-currency="INR" data-buttontext="Proceed Checkout"
+                                data-name="ShopSphere" data-description="Order Payment"
+                                data-image="https://www.itsolutionstuff.com/frontTheme/images/logo.png"
+                                data-prefill.name="{{ auth()->user()->name ?? 'Guest' }}"
+                                data-prefill.email="{{ auth()->user()->email ?? 'guest@example.com' }}" data-theme.color="#ff7529"></script>
+
+                        </form> --}}
+
                     </div>
                 </div>
             </div>
@@ -123,12 +145,74 @@
     </div>
     <!-- Cart Page End -->
 
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
         $(document).ready(function() {
+            refreshCartTotal();
+            let finalAmount = 0;
 
+            function refreshCartTotal() {
+                $.ajax({
+                    url: "{{ route('cart.subtotal') }}",
+                    method: 'GET',
+                    success: function(response) {
+                        $('#cart-total').text(response.before_total_amount);
+                        $('#final-cart-total').text(response.final_total_amount);
+                        finalAmount = response.final_total_amount * 100; // SEND IN pAISA
+                    },
+                    error: function() {
+                        console.error("Failed to fetch cart subtotal.");
+                    }
+                });
+            }
+
+
+
+            document.getElementById('pay-button').addEventListener('click', function(e) {
+                e.preventDefault();
+
+                let options = {
+                    "key": "{{ env('RAZORPAY_KEY_ID') }}",
+                    "amount": finalAmount,
+                    "currency": "INR",
+                    "name": "ShopSphere",
+                    "description": "Order Payment",
+                    "image": "https://www.itsolutionstuff.com/frontTheme/images/logo.png",
+                    "handler": function(response) {
+                        // Send response.razorpay_payment_id to server
+                        let form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = "{{ route('razorpay.payment.store') }}";
+
+                        let token = document.createElement('input');
+                        token.type = 'hidden';
+                        token.name = '_token';
+                        token.value = '{{ csrf_token() }}';
+                        form.appendChild(token);
+
+                        let paymentId = document.createElement('input');
+                        paymentId.type = 'hidden';
+                        paymentId.name = 'razorpay_payment_id';
+                        paymentId.value = response.razorpay_payment_id;
+                        form.appendChild(paymentId);
+
+                        document.body.appendChild(form);
+                        form.submit();
+                    },
+                    "prefill": {
+                        "name": "{{ auth()->user()->name ?? 'Guest' }}",
+                        "email": "{{ auth()->user()->email ?? 'guest@example.com' }}",
+                        "contact": "8696259964"
+                    },
+                    "theme": {
+                        "color": "#ff7529"
+                    }
+                };
+
+                let rzp = new Razorpay(options);
+                rzp.open();
+            });
 
             $(document).on('click', '.delete-cart-item', function() {
 
@@ -162,25 +246,40 @@
             });
 
 
-            $(document).on('click', '.update-qty', function() {
+            $(document).on('click', '.update-qty-increase', function() {
 
-                let type = $(this).data('type');
-                let productId = $(this).data('product-id');
-                let input = $(`.cart-qty-input[data-product-id = "${productId}"]`);
-                let quantity = parseInt(input.val());
-
-                if (type === 'increase') {
-                    quantity += 1;
-                } else if (type === 'decrease' && quantity > 1) {
-                    quantity -= 1;
-                }
+                const productId = $(this).data('product-id');
+                const input = $(this).siblings('.cart-qty-input');
+                let quantity = parseInt(input.val()) + 1;
 
                 input.val(quantity);
 
-                updateCart(productId, quantity);
+                console.log(productId, quantity);
 
+                updateCart(productId, quantity);
             });
 
+            $(document).on('click', '.update-qty-decrease', function() {
+
+                const productId = $(this).data('product-id');
+                const input = $(this).siblings('.cart-qty-input');
+                let quantity = parseInt(input.val()) - 1;
+
+                if (quantity < 1) {
+                    quantity = 0;
+                    input.val(quantity);
+                    // updateCart(productId, quantity);
+                    $(this).closest('tr').fadeOut(300, function() {
+                        $(this).remove();
+                    });
+
+
+                }
+                input.val(quantity);
+                updateCart(productId, quantity);
+
+
+            });
 
             function updateCart(productId, quantity) {
 
@@ -193,9 +292,12 @@
                         quantity: quantity
                     },
                     success: function(response) {
-                        console.log(response.message);
-                        // Optional: Reload the page or update totals dynamically
-                        location.reload();
+                        const originalPrice = response.original_price;
+                        const discountPrice = response.discount_price;
+                        updateCartCount(response.cart_count);
+                        refreshCartTotal()
+                        $(`#original-price-${productId}`).text(originalPrice.toFixed(2));
+                        $(`#discount-price-${productId}`).text(discountPrice.toFixed(2));
                     },
                     error: function(xhr) {
                         alert("Failed to update cart.");
@@ -205,7 +307,9 @@
 
             }
 
-
+            function updateCartCount(count) {
+                $('.fa-shopping-bag').siblings('span').text(count);
+            }
 
 
 

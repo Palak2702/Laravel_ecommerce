@@ -31,8 +31,14 @@ Route::post('/add-to-cart',[CartController::class,'add']);
 Route::post('/update-cart',[CartController::class,'update'])->name('cart.update');
 Route::get('/get-cart-data',[CartController::class,'getCartData'])->name('cart.get.data');
 Route::get('/delete-cart-item',[CartController::class,'deleteCartItem'])->name('cart.delete.item');
+Route::get('/get_cart-subtotal', [CartController::class, 'getCartSubtotal'])->name('cart.subtotal');
+
 Route::get('/cart-checkout',[CartController::class,'showCartPage'])->name('cart.showCart');
 
+
+
+Route::get('razorpay-payment', [CartController::class, 'razonPayPage']);
+Route::post('razorpay-payment', [CartController::class, 'razonPayStore'])->name('razorpay.payment.store');
 
 
 // Auth ROute
