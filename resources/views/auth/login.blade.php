@@ -23,31 +23,42 @@
                                 <div class="card-header">
                                     <h3 class="text-center font-weight-light my-4">Login Account</h3>
                                 </div>
+
+
                                 <div class="card-body">
-                                    <form  method="POST" action="{{route('login')}}">
+
+                                    @if ($errors->any())
+                                        <div class="alert alert-danger">
+                                            <ul class="mb-0">
+                                                @foreach ($errors->all() as $error)
+                                                    <li>{{ $error }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
+                                    <form method="POST" action="{{ route('login') }}">
                                         @csrf
                                         <div class="form-floating mb-3">
                                             <input class="form-control" id="inputEmail" name="email" type="email"
-                                                placeholder="name@example.com" />
+                                                placeholder="name@example.com"  required/>
                                             <label for="inputEmail">Email address</label>
+
                                         </div>
 
                                         <div class="form-floating mb-3">
-                                            <input class="form-control" id="inputPassword"  name="password"  type="password"
-                                                placeholder="Create a password" />
+                                            <input class="form-control" id="inputPassword" name="password"
+                                                type="password" placeholder="Create a password" required  />
                                             <label for="inputPassword">Password</label>
                                         </div>
 
                                         <div class="mt-4 mb-0">
-                                            <button type="submit"  class="btn btn-primary btn-block" >Login
-
-                                            </button>
-                                          
+                                            <button type="submit" class="btn btn-primary btn-block">Login </button>
                                         </div>
                                     </form>
                                 </div>
                                 <div class="card-footer text-center py-3">
-                                    <div class="small"><a href="{{route('register.form')}}">No account? Sign Up</a></div>
+                                    <div class="small"><a href="{{ route('register.form') }}">No account? Sign Up</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -55,7 +66,7 @@
                 </div>
             </main>
         </div>
-    
+
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous">
     </script>

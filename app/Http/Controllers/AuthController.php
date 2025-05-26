@@ -37,7 +37,7 @@ class AuthController extends Controller
         if ($user->role === 1) {
             return redirect('/admin/dashboard');
         } else {
-            return redirect('/customer/dashboard');
+            return redirect('/');
         }
     }
 
@@ -75,8 +75,9 @@ class AuthController extends Controller
 
                 return redirect('/');
             }
-            return redirect()->back()->withErrors(['email' => 'Invalid credentials']);
+            return redirect()->back()->with('error', 'Unauthorized access');
         }
+        return redirect()->back()->withErrors(['email' => 'Invalid credentials'])->withInput();
     }
 
 

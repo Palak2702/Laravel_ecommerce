@@ -23,45 +23,70 @@
                                 <div class="card-header">
                                     <h3 class="text-center font-weight-light my-4">Create Account</h3>
                                 </div>
+
                                 <div class="card-body">
+                                    @if ($errors->any())
+                                        <div class="alert alert-danger mt-3">
+                                            <ul class="mb-0">
+                                                @foreach ($errors->all() as $error)
+                                                    <li>{{ $error }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
                                     <form method="POST" action="{{ route('register') }}">
                                         @csrf
 
                                         <div class="form-floating mb-3">
-                                            <input class="form-control"  name ="name" id="inputFirstName" type="text"
-                                                placeholder="Enter youfirst name" />
+                                            <input class="form-control" name ="name" id="inputFirstName"
+                                                type="text" placeholder="Enter youfirst name" required />
                                             <label for="inputFirstName">First name</label>
+                                            @error('name')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
                                         </div>
 
                                         <div class="form-floating mb-3">
                                             <input class="form-control" name="email" id="inputEmail" type="email"
-                                                placeholder="name@example.com" />
+                                                placeholder="name@example.com" required />
                                             <label for="inputEmail">Email address</label>
+                                            @error('email')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
                                         </div>
 
                                         <div class="form-floating mb-3">
-                                            <input class="form-control" name="password" id="inputPassword" type="password"
-                                                placeholder="Create a password" />
+                                            <input class="form-control" name="password" id="inputPassword"
+                                                type="password" placeholder="Create a password" required />
                                             <label for="inputPassword">Password</label>
+                                            @error('password')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
                                         </div>
 
 
                                         <div class="form-floating mb-3 ">
-                                            <input class="form-control" name="confirm_password" id="inputPasswordConfirm" type="password"
-                                                placeholder="Confirm password" />
+                                            <input class="form-control" name="confirm_password"
+                                                id="inputPasswordConfirm" type="password" placeholder="Confirm password"
+                                                required />
                                             <label for="inputPasswordConfirm">Confirm Password</label>
+                                            @error('confirm_password')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
                                         </div>
 
 
                                         <div class="mt-4 mb-0">
-                                            <button   type="submit" class="btn btn-primary btn-block">Create Account</button>
+                                            <button type="submit" class="btn btn-primary btn-block">Register</button>
                                             {{-- <div class="d-grid"><a class="btn btn-primary btn-block"
                                                     href="login.html">Create Account</a></div> --}}
                                         </div>
                                     </form>
                                 </div>
                                 <div class="card-footer text-center py-3">
-                                    <div class="small"><a href="{{ route('login.form') }}">Have an account? Go to
+                                    <div class="small">
+                                        
+                                        <a href="{{ route('login.form') }}">Have an account? Go to
                                             login</a></div>
                                 </div>
                             </div>
