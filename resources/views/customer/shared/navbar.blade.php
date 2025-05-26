@@ -34,7 +34,11 @@
                     {{-- <a href="shop.html" class="nav-item nav-link">Shop</a>
                             <a href="shop-detail.html" class="nav-item nav-link">Shop Detail</a> --}}
 
-                    <a href="contact.html" class="nav-item nav-link">Contact</a>
+                    <a href="{{route('contact.show')}}" class="nav-item nav-link">Contact Us</a>
+
+                    @auth
+                    <a href="{{route('get.my.orders')}}" class="nav-item nav-link">My Orders</a>
+                    @endauth
                 </div>
                 <div class="d-flex m-3 me-0">
 

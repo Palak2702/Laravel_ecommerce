@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 class CategoryController extends Controller
 {
 
-    public function index() {
+    public function index(){
         return view('admin.categories.create');
     }
    
@@ -22,8 +22,6 @@ class CategoryController extends Controller
 
        return response()->json(['success' => true, 'data' => $category]);
     }
-
-
     public function fetch(){
         $categories = ProductCategory::latest()->get();
         return response()->json($categories);

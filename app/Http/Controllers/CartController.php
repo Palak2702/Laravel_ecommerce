@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\OrderPlacedMail;
 use App\Models\Cart;
+use App\Models\Order;
 use App\Models\Product;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use Razorpay\Api\Api;
 
@@ -136,26 +139,62 @@ class CartController extends Controller
             'razorpay_payment_id' => 'required|string',
         ]);
 
+
+
+        // $key = env('RAZORPAY_KEY_ID');
+        // $secret = env('RAZORPAY_KEY_SECRET');
+
+        // // Quick debug to make sure keys are loaded
+
+        // dd(  $key  ,  $secret  );
+        // if (!$key || !$secret) {
+        //     dd('Razorpay keys not loaded from .env');
+        // }
+
+        // $api = new Api($key, $secret);
+        $api = new Api(config('services.razorpay.key'), config('services.razorpay.secret'));
+        
+        $payment_id = $request->razorpay_payment_id;
+
         try {
-           
 
-            // $api = new Api($RAZORPAY_KEY_ID, $RAZORPAY_KEY_SECRET);
-            $api = new Api(env('RAZORPAY_KEY_ID'), env('RAZORPAY_KEY_SECRET'));
+         
+            $payment = $api->payment->fetch($payment_id);
+          
 
-            $payment = $api->payment->fetch($request->razorpay_payment_id);
+            if ($payment->status == 'captured'  ||  $payment->status == 'authorized') {
+                $order = new Order();
+                $order->user_id =  auth()->id();
+                $order->total_amount =  $payment->amount / 100;
+                $order->payment_id =  $request->razorpay_payment_id;
+                $order->status =  'paid';
+                $order->save();
 
-            $response = $payment->capture(['amount' => $payment['amount']]);
 
-            // You can optionally store in DB here
+                foreach (Cart::where('user_id', auth()->id())->get() as $item) {
 
-            Session::put('success', 'Payment successful');
+                    $order->orderItems()->create([
+                        'product_id' => $item->product_id,
+                        'quantity' => $item->quantity,
+                        'price' => $item->discount_price,
+                    ]);
+                }
+
+                Cart::where('user_id', auth()->id())->delete();
+
+                // Mail::to(auth()->user()->email)->send(new OrderPlacedMail($order));
+
+
+                return redirect()->route('order.success', $order->id);
+            } else {
+                return redirect()->back()->with('error', 'Payment not captured.');
+            }
         } catch (\Exception $e) {
+            dd("2", 'Razorpay Payment Error: ' . $e->getMessage());
             \Log::error('Razorpay Payment Error: ' . $e->getMessage());
             Session::put('error', 'Payment failed. Please try again.');
         }
 
         return redirect()->back();
     }
-
-   
 }
