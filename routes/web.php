@@ -22,7 +22,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 
-
+Route::get('/hello', function () {
+    return 'Hello from Laravel!';
+});
 
 Route::get('/', [HomeController::class, 'index']);
 Route::get('/products-by-category/{id}', [HomeController::class, 'getProductsByCategory']);
